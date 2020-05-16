@@ -14,29 +14,31 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewBinding: ActivityMainBinding
-    private lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
     private val handler: Handler = Handler(Looper.getMainLooper())
-    private var index = 0
+    private var randomIndex = Random(System.currentTimeMillis())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        showImage(getFilenameFromIndex(index))
-        playSound()
+        showImage(getRandomFilename())
     }
 
     private fun playSound() {
-        mediaPlayer = MediaPlayer.create(this, R.raw.sound1).apply {
-            isLooping = true
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.sound1).apply {
+                isLooping = true
+            }
         }
 
-        mediaPlayer.start()
+        mediaPlayer?.start()
     }
 
     private fun showImage(filename: String) {
@@ -45,15 +47,24 @@ class MainActivity : AppCompatActivity() {
             viewBinding.flashImage.setImageBitmap(bitmap)
         }
         handler.postDelayed({
-            showImage(getFilenameFromIndex(index))
+            showImage(getRandomFilename())
         }, SWAP_INTERVAL)
-        index++
+    }
+
+    override fun onResume() {
+        super.onResume()
+        playSound()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mediaPlayer?.pause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
-        mediaPlayer.stop()
+        mediaPlayer?.stop()
     }
 
     private suspend fun loadBitmapFromAssets(filename: String): Bitmap =
@@ -63,10 +74,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private fun getFilenameFromIndex(index: Int): String =
-        "%03d.jpg".format((index % 33) + 1)
+    private fun getRandomFilename(): String =
+        "%03d.jpg".format((randomIndex.nextInt(34) + 1))
 
     private companion object {
-        private val SWAP_INTERVAL = TimeUnit.MINUTES.toMillis(2)
+        private val SWAP_INTERVAL = TimeUnit.MINUTES.toMillis(1)
     }
 }
