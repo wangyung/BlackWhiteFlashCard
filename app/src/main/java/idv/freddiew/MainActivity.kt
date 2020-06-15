@@ -13,6 +13,7 @@ import idv.freddiew.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -28,18 +29,38 @@ class MainActivity : AppCompatActivity() {
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        showImage(getRandomFilename())
+        setupBindingViews()
     }
 
-    private fun playSound() {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(this, R.raw.sound1).apply {
-                isLooping = true
+    private fun setupBindingViews() {
+        viewBinding.play.setOnClickListener {
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer.create(this, R.raw.shu).apply {
+                    isLooping = true
+                }
+            }
+            if (mediaPlayer?.isPlaying == true) {
+                pausePlayer()
+            } else {
+                resumePlayer()
             }
         }
-
-        mediaPlayer?.start()
+        viewBinding.nextImage.setOnClickListener {
+            showImage()
+        }
     }
+
+    private fun pausePlayer() {
+        mediaPlayer?.pause()
+        viewBinding.play.setImageResource(R.drawable.ic_play_arrow_white)
+    }
+
+    private fun resumePlayer() {
+        mediaPlayer?.start()
+        viewBinding.play.setImageResource(R.drawable.ic_pause_white)
+    }
+
+    private fun showImage() = showImage(getRandomFilename())
 
     private fun showImage(filename: String) {
         lifecycleScope.launch {
@@ -53,12 +74,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        playSound()
+        showImage()
     }
 
     override fun onPause() {
         super.onPause()
-        mediaPlayer?.pause()
+        pausePlayer()
+        HttpURLConnection.HTTP_OK
     }
 
     override fun onDestroy() {
@@ -75,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun getRandomFilename(): String =
-        "%03d.jpg".format((randomIndex.nextInt(34) + 1))
+        "%03d.jpg".format((randomIndex.nextInt(29) + 1))
 
     private companion object {
         private val SWAP_INTERVAL = TimeUnit.MINUTES.toMillis(1)
