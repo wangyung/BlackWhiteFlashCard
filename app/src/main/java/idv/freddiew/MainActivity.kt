@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     private fun showImage() = showImage(getRandomFilename())
 
     private fun showImage(filename: String) {
+        handler.removeCallbacksAndMessages(null)
         lifecycleScope.launch {
             val bitmap = loadBitmapFromAssets(filename)
             viewBinding.flashImage.setImageBitmap(bitmap)
@@ -97,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun getRandomFilename(): String =
-        "%03d.jpg".format((randomIndex.nextInt(29) + 1))
+        "%03d.jpg".format((randomIndex.nextInt(27) + 1))
 
     private companion object {
         private val SWAP_INTERVAL = TimeUnit.MINUTES.toMillis(1)
